@@ -30,15 +30,15 @@ public abstract class RiddleSolver<A> {
         return null;
     }
 
-    public AdvancedList<List<String[]>> splitLineAndRegexGroups(String regex) {
+    public AdvancedList<AdvancedList<String[]>> splitLineAndRegexGroups(String regex) {
         Pattern compile = Pattern.compile(regex);
         return splitLinesAndConvert(s -> {
             Matcher matcher = compile.matcher(s);
-            List<String[]> matches = new ArrayList<>();
+            AdvancedList<String[]> matches = new AdvancedList<>();
             while (matcher.find()) {
                 String[] strings = new String[matcher.groupCount()];
-                for (int i = 0; i < strings.length; i++) {
-                    strings[i] = matcher.group(i);
+                for (int i = 1; i < strings.length + 1; i++) {
+                    strings[i - 1] = matcher.group(i);
                 }
                 matches.add(strings);
             }

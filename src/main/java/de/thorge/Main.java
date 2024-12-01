@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.*;
 
 public class Main {
-	public static final String URL = "https://adventofcode.com/2023";
+	public static final String URL = "https://adventofcode.com/2024";
 	public static final boolean SKIP_BROWSER = false;
 	public static final PrintStream PRINT_STREAM = System.out;
 	public static final PrintStream EMPTY_STREAM = new PrintStream(new EmptyOutputStream());

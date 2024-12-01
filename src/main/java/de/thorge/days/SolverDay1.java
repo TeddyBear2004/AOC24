@@ -3,80 +3,89 @@ package de.thorge.days;
 import de.thorge.solver.RiddleSolver;
 import de.thorge.solver.Solver;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SolverDay1 extends Solver {
-	private static final List<String> NUMBERS = List.of("one",
-			"two",
-			"three",
-			"four",
-			"five",
-			"six",
-			"seven",
-			"eight",
-			"nine");
 
-	@Override
-	public RiddleSolver<Integer> getFirstRiddleSolver() {
-		return new RiddleSolver<>() {
-			@Override
-			public Integer getSolution() {
-				return 142;
-			}
+    @Override
+    public RiddleSolver<Integer> getFirstRiddleSolver() {
+        return new RiddleSolver<>() {
+            @Override
+            public Integer getSolution() {
+                return 11;
+            }
 
-			@Override
-			public Integer solveRiddle() {
-				Pattern pattern = Pattern.compile("(?<digit>\\d)");
+            @Override
+            public Integer solveRiddle() {
+                Pattern pattern = Pattern.compile("");
 
-				return splitLinesAndConvert(pattern::matcher).map(matcher -> solveDay1(matcher)).intSum();
-			}
-		};
-	}
+                List<int[]> list = splitLineAndRegexGroups("(\\d+)\\s+(\\d+)")
+                        .map(strings -> strings.get(0))
+                        .map(strings -> {
+                            int left = Integer.parseInt(strings[0]);
+                            int right = Integer.parseInt(strings[1]);
 
-	@Override
-	public RiddleSolver<Integer> getSecondRiddleSolver() {
-		return new RiddleSolver<>() {
-			@Override
-			public Integer getSolution() {
-				return 281;
-			}
+                            return new int[]{left, right};
+                        }).stream().toList();
 
-			@Override
-			public String overrideTest() {
-				return """
-						two1nine
-						eightwothree
-						abcone2threexyz
-						xtwone3four
-						4nineeightseven2
-						zoneight234
-						7pqrstsixteen
-						""";
-			}
+                List<Integer> left = list.stream().map(ints -> ints[0]).toList();
+                List<Integer> right = list.stream().map(ints -> ints[1]).toList();
 
-			@Override
-			public Integer solveRiddle() {
-				Pattern pattern = Pattern.compile("(?=((?<digit>\\d)|(?<word>one|two|three|four|five|six|seven|eight|nine)))");
+                return solveDay1(left, right);
+            }
+        };
+    }
 
-				return splitLinesAndConvert(pattern::matcher).map(matcher -> solveDay1(matcher))
-						.intSum();
-			}
-		};
-	}
+    @Override
+    public RiddleSolver<Integer> getSecondRiddleSolver() {
+        return new RiddleSolver<>() {
+            @Override
+            public Integer getSolution() {
+                return 31;
+            }
 
-	private int solveDay1(Matcher matcher) {
-		int sol = 0;
+            @Override
+            public Integer solveRiddle() {
+                List<int[]> list = splitLineAndRegexGroups("(\\d+)\\s+(\\d+)")
+                        .map(strings -> strings.get(0))
+                        .map(strings -> {
+                            int left = Integer.parseInt(strings[0]);
+                            int right = Integer.parseInt(strings[1]);
 
-		while (matcher.find()) {
-			sol = sol / 10 * 10;
-			sol += matcher.group("digit") == null ? NUMBERS.indexOf(matcher.group("word")) + 1 : Integer.parseInt(matcher.group("digit"));
+                            return new int[]{left, right};
+                        }).stream().toList();
 
-			if (sol < 10)
-				sol = sol * 11;
-		}
+                List<Integer> left = list.stream().map(ints -> ints[0]).toList();
+                List<Integer> right = list.stream().map(ints -> ints[1]).toList();
 
-		return sol;
-	}
+
+                int sum = 0;
+                for (Integer i1 : left) {
+                    long count = right.stream().filter(i1::equals).count();
+
+                    sum += (int) (i1 * count);
+                }
+                return sum;
+            }
+        };
+    }
+
+    private int solveDay1(List<Integer> left, List<Integer> right) {
+        left = new ArrayList<>(left);
+        right = new ArrayList<>(right);
+
+        left.sort(Integer::compareTo);
+        right.sort(Integer::compareTo);
+
+        int sum = 0;
+        for (int i = 0; i < left.size(); i++) {
+            Integer i1 = left.get(i);
+            sum += Math.abs(
+                    i1 - right.get(i)
+            );
+        }
+        return sum;
+    }
 }
