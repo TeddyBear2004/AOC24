@@ -70,8 +70,8 @@ public abstract class RiddleSolver<A> {
         return cList;
     }
 
-    public List<String> splitLines() {
-        return split("\n");
+    public AdvancedList<String> splitLines() {
+        return new AdvancedList<>(split("\n").stream().map(String::trim).toList());
     }
 
     public List<String> split(String regex) {
