@@ -1,15 +1,10 @@
 package de.thorge.days;
 
-import de.thorge.AdvancedList;
 import de.thorge.solver.RiddleSolver;
 import de.thorge.solver.Solver;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SolverDay3 extends Solver {
 
@@ -18,85 +13,28 @@ public class SolverDay3 extends Solver {
         return new RiddleSolver<>() {
             @Override
             public Long getSolution() {
-                return 4361L;
+                return 161L;
             }
 
             @Override
             public Long solveRiddle() {
-                AdvancedList<AdvancedList<Character>> advancedLists = splitLinesAndConvert(s -> {
-                    AdvancedList<Character> objects = new AdvancedList<>();
-                    for (char c : s.toCharArray()) {
-                        objects.add(c == '.' ? null : c);
-                    }
-                    objects.add(null);
-
-                    return objects;
-                });
-
-                long sum = 0;
-                for (int lineNr = 0; lineNr < advancedLists.size(); lineNr++) {
-                    int currentInt = 0;
-                    AtomicBoolean isConfirmed = new AtomicBoolean(false);
-
-                    nextChar:
-                    for (int charNr = 0; charNr < advancedLists.get(lineNr).size(); charNr++) {
-                        Character c = advancedLists.get(lineNr).get(charNr);
-
-                        if (c != null) {
-                            if (Character.isDigit(c)) {
-                                currentInt = currentInt * 10 + Character.getNumericValue(c);
-                            } else {
-                                if (currentInt != 0) {
-                                    if (isConfirmed.get()) {
-                                        sum += currentInt;
+                return splitLineAndRegexGroups("mul\\((\\d{1,3})(,\\d{1,3})?(,\\d{1,3})?\\)")
+                        .map(strings -> {
+                            int sum = 0;
+                            for (String[] string : strings) {
+                                int solution = 1;
+                                for (int i = 0; i < string.length; i++) {
+                                    if (string[i] == null)
+                                        continue;
+                                    if (string[i].startsWith(",")) {
+                                        string[i] = string[i].substring(1);
                                     }
-
+                                    solution *= Integer.parseInt(string[i]);
                                 }
-
-                                isConfirmed.set(false);
-                                currentInt = 0;
-                                continue;
+                                sum += solution;
                             }
-                        } else {
-                            if (currentInt != 0) {
-                                if (isConfirmed.get()) {
-                                    sum += currentInt;
-                                }
-
-                            }
-
-                            isConfirmed.set(false);
-                            currentInt = 0;
-                            continue;
-                        }
-
-                        for (int i = -1; i < 2; i++) {
-                            for (int j = -1; j < 2; j++) {
-                                if (i == 0 && j == 0)
-                                    continue;
-
-                                if (!Character.isDigit(c)) {
-                                    continue nextChar;
-                                }
-
-                                if (isConfirmed.get())
-                                    continue;
-
-                                int dx = lineNr + i;
-                                int dy = charNr + j;
-
-                                advancedLists.getOptional(dx)
-                                        .flatMap(characters -> characters.getOptional(dy))
-                                        .filter(character -> !Character.isSpaceChar(character))
-                                        .filter(character -> character != '\r')
-                                        .filter(character -> !Character.isDigit(character))
-                                        .ifPresent(character -> isConfirmed.set(true));
-                            }
-                        }
-                    }
-
-                }
-                return sum;
+                            return sum;
+                        }).longSum();
             }
         };
     }
@@ -106,81 +44,47 @@ public class SolverDay3 extends Solver {
         return new RiddleSolver<>() {
             @Override
             public Long getSolution() {
-                return 467835L;
+                return 48L;
+            }
+
+
+            @Override
+            public String overrideTest() {
+                return "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
             }
 
             @Override
             public Long solveRiddle() {
-                AdvancedList<AdvancedList<Character>> advancedLists = splitLinesAndConvert(s -> {
-                    AdvancedList<Character> objects = new AdvancedList<>();
-                    for (char c : s.toCharArray()) {
-                        objects.add(c == '.' ? null : c);
-                    }
-                    objects.add(null);
+                Pattern compile = Pattern.compile("mul\\((\\d{1,3})(,\\d{1,3})?(,\\d{1,3})?\\)");
+                return splitLines().map(s -> {
+                    Matcher matcher = compile.matcher(s);
 
-                    return objects;
-                });
+                    long sum = 0;
 
-                Map<Integer, Set<AtomicInteger>> map = new HashMap<>();
-
-                for (int lineNr = 0; lineNr < advancedLists.size(); lineNr++) {
-
-                    AtomicInteger currentInt = new AtomicInteger();
-                    nextChar:
-                    for (int charNr = 0; charNr < advancedLists.get(lineNr).size(); charNr++) {
-                        Character c = advancedLists.get(lineNr).get(charNr);
-
-                        if (c != null) {
-                            if (Character.isDigit(c)) {
-                                currentInt.set(currentInt.get() * 10 + Character.getNumericValue(c));
-                            } else {
-                                currentInt = new AtomicInteger();
+                    while (matcher.find()) {
+                        long solution = 1;
+                        boolean any = false;
+                        for (int i = 1; i < matcher.groupCount(); i++) {
+                            int start = matcher.start(i);
+                            String substring = s.substring(0, start);
+                            int dontI = substring.lastIndexOf("don't()");
+                            int doI = substring.lastIndexOf("do()");
+                            if (dontI > doI) {
                                 continue;
                             }
-                        } else {
-                            currentInt = new AtomicInteger();
-                            continue;
+
+                            if (matcher.group(i).startsWith(",")) {
+                                solution *= Integer.parseInt(matcher.group(i).substring(1));
+                            } else
+                                solution *= Integer.parseInt(matcher.group(i));
+                            any = true;
                         }
-
-                        for (int i = -1; i < 2; i++) {
-                            for (int j = -1; j < 2; j++) {
-                                if (i == 0 && j == 0)
-                                    continue;
-
-                                if (!Character.isDigit(c)) {
-                                    continue nextChar;
-                                }
-
-                                int dx = lineNr + i;
-                                int dy = charNr + j;
-
-                                AtomicInteger finalCurrentInt = currentInt;
-                                advancedLists.getOptional(dx)
-                                        .flatMap(characters -> characters.getOptional(dy))
-                                        .filter(character -> character == '*')
-                                        .ifPresent(character -> {
-                                            int i1 = (dx * 1000) + dy;
-                                            map.putIfAbsent(i1, new HashSet<>());
-                                            map.get(i1).add(finalCurrentInt);
-                                        });
-                            }
-                        }
+                        if (any)
+                            sum += solution;
                     }
-                }
 
-                long sum = 0;
-
-                for (Set<AtomicInteger> value : map.values()) {
-                    if (value.size() == 2) {
-                        int m = 1;
-                        for (AtomicInteger atomicInteger : value) {
-                            m *= atomicInteger.get();
-                        }
-                        sum += m;
-                    }
-                }
-
-                return sum;
+                    return sum;
+                }).longSum();
             }
         };
     }

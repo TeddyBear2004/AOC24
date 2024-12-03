@@ -68,11 +68,9 @@ public class SolverDay2 extends Solver {
                                 System.arraycopy(strings, i + 1, trimmed, i, trimmed.length - i);
                                 int result = validateSequence(trimmed);
                                 if (result == 1) {
-                                    System.out.println("Removed: " + strings[i]);
                                     return 1;
                                 }
                             }
-                            System.out.println("No valid removal found");
                             return validateSequence(strings);
                         }).intSum();
             }
