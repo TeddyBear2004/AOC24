@@ -13,28 +13,12 @@ public class SolverDay3 extends Solver {
         return new RiddleSolver<>() {
             @Override
             public Long getSolution() {
-                return 161L;
+                return 0L;
             }
 
             @Override
             public Long solveRiddle() {
-                return splitLineAndRegexGroups("mul\\((\\d{1,3})(,\\d{1,3})?(,\\d{1,3})?\\)")
-                        .map(strings -> {
-                            int sum = 0;
-                            for (String[] string : strings) {
-                                int solution = 1;
-                                for (int i = 0; i < string.length; i++) {
-                                    if (string[i] == null)
-                                        continue;
-                                    if (string[i].startsWith(",")) {
-                                        string[i] = string[i].substring(1);
-                                    }
-                                    solution *= Integer.parseInt(string[i]);
-                                }
-                                sum += solution;
-                            }
-                            return sum;
-                        }).longSum();
+                return 0L;
             }
         };
     }
@@ -44,51 +28,45 @@ public class SolverDay3 extends Solver {
         return new RiddleSolver<>() {
             @Override
             public Long getSolution() {
-                return 48L;
-            }
-
-
-            @Override
-            public String overrideTest() {
-                return "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
+                return 106921067L;
             }
 
             @Override
             public Long solveRiddle() {
-                Pattern compile = Pattern.compile("mul\\((\\d{1,3})(,\\d{1,3})?(,\\d{1,3})?\\)");
+                Pattern compile = Pattern.compile("mul\\((\\d{1,3}),(\\d{1,3})\\)");
                 return splitLines().map(s -> {
-                    Matcher matcher = compile.matcher(s);
-
-                    long sum = 0;
-
-                    while (matcher.find()) {
-                        long solution = 1;
-                        boolean any = false;
-                        for (int i = 1; i < matcher.groupCount(); i++) {
-                            int start = matcher.start(i);
-                            String substring = s.substring(0, start);
-                            int dontI = substring.lastIndexOf("don't()");
-                            int doI = substring.lastIndexOf("do()");
-                            if (dontI > doI) {
-                                continue;
-                            }
-
-                            if (matcher.group(i).startsWith(",")) {
-                                solution *= Integer.parseInt(matcher.group(i).substring(1));
-                            } else
-                                solution *= Integer.parseInt(matcher.group(i));
-                            any = true;
+                    String[] segments = s.split("(?=do\\(\\))|(?=don't\\(\\))");
+                    long solution = 0;
+                    for (String segment : segments) {
+                        if (segment.startsWith("don't()")) {
+                            continue;
                         }
-                        if (any)
-                            sum += solution;
-                    }
 
-                    return sum;
+                        Matcher matcher = compile.matcher(segment);
+                        while (matcher.find()) {
+                            int prod = getProd(matcher);
+                            solution += prod;
+                        }
+
+                    }
+                    return solution;
+
                 }).longSum();
             }
         };
     }
 
+    private static int getProd(Matcher matcher) {
+        int prod = 1;
+        for (int i1 = 1; i1 <= matcher.groupCount(); i1++) {
+            String group = matcher.group(i1);
+            if (group != null) {
+                prod *= Integer.parseInt(group);
+            }
+        }
+
+        return prod;
+    }
 }
 
 
